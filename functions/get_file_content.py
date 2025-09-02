@@ -1,5 +1,20 @@
 import os
 from functions.config import *
+from google.genai import types
+
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description="Lists the contents of a file at the given relative path.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The file path from where the content will come from.",
+            ),
+        },
+    ),
+)
 
 def get_file_content(working_directory, file_path):
     absolute_combined_path = os.path.abspath(os.path.join(working_directory, file_path))

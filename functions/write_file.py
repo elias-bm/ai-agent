@@ -1,4 +1,23 @@
 import os
+from google.genai import types
+
+schema_write_file = types.FunctionDeclaration(
+    name="write_files",
+    description="Write text content to a file at the given relative path within the working directory. Creates parent directories if needed.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="Relative path to the file to write.",
+            ),
+             "content": types.Schema(
+                type=types.Type.STRING,
+                description="Content to write.",
+            ),
+        },
+    ),
+)
 
 def write_file(working_directory, file_path, content):
     absolute_combined_path = os.path.abspath(os.path.join(working_directory, file_path))
