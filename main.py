@@ -45,29 +45,41 @@ def main():
     
     config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt)
 
-    response = client.models.generate_content(
-        model='gemini-2.0-flash-001',
-        contents=messages,
-        config=config,
-    )
+    for _ in range(20):    
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.0-flash-001',
+                contents=messages,
+                config=config,
+            )
 
-    if response.function_calls:
-        for function_call_part in response.function_calls:
-            function_call_result = call_function(function_call_part, verbose)
-            if hasattr(function_call_result.parts[0], "function_response"):
-                if verbose==True:
-                    print(f"-> {function_call_result.parts[0].function_response.response}")
-            else:
-                raise ValueError("Doesn't exist.")
+            for cand in response.candidates:
+                messages.append(cand.content)
 
+            if response.function_calls:
+                for function_call_part in response.function_calls:
+                    function_call_result = call_function(function_call_part, verbose)
+                    if hasattr(function_call_result.parts[0], "function_response"):
+                        if verbose:
+                            print(f"-> {function_call_result.parts[0].function_response.response}")
+                    else:
+                        raise ValueError("Doesn't exist.")
+                    tool_msg = types.Content(role="user", parts=function_call_result.parts)
+                    messages.append(tool_msg)
 
-    elif verbose:
-        print(f"User prompt:" , user_prompt)
-        print(f"Prompt tokens:" , response.usage_metadata.prompt_token_count)
-        print(f"Response tokens:" , response.usage_metadata.candidates_token_count)
-        print(response.text)
-    else:
-        print(response.text)
+                continue
+
+            if response.text:
+                if verbose:
+                    print(f"User prompt:" , user_prompt)
+                    print(f"Prompt tokens:" , response.usage_metadata.prompt_token_count)
+                    print(f"Response tokens:" , response.usage_metadata.candidates_token_count)
+                print(response.text)
+                break
+        except Exception as e:
+            if verbose:
+                print(f"Error: {e}")
+            break
 
 if __name__ == "__main__":
     main()
